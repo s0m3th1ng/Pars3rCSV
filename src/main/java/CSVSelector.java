@@ -12,12 +12,15 @@ import java.util.stream.Collectors;
 
 public abstract class CSVSelector {
 
-    public static void parseFolder(File directory, int productsLimit, int idLimit) {
+    private static final String[] header = "Product ID,Name,Condition,State,Price".split(",");
+
+    public static File parseFolder(File directory, int productsLimit, int idLimit) {
         File[] files = getAllCSV(directory);
         try {
             PriorityQueue<Product> products = selectCheapest(files, productsLimit, idLimit);
-            createCSV(products);
+            return createCSV(products);
         } catch (Exception ignored) { }
+        return null;
     }
 
     private static File[] getAllCSV(File directory) {
@@ -97,13 +100,13 @@ public abstract class CSVSelector {
         return productsWithSameID.get(0);
     }
 
-    private static void createCSV(PriorityQueue<Product> products) throws IOException {
+    private static File createCSV(PriorityQueue<Product> products) throws IOException {
         CSVWriter writer = new CSVWriter(new FileWriter("output.csv"));
-        String[] header = "Product ID,Name,Condition,State,Price".split(",");
         writer.writeNext(header);
         products.stream()
                 .sorted(new ProductComparator())
                 .forEach(p -> writer.writeNext(p.toStringArray()));
         writer.close();
+        return new File("output.csv");
     }
 }

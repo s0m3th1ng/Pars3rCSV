@@ -11,7 +11,8 @@ public class Main {
             if (limits != null) {
                 int productsLimit = limits[0];
                 int idLimit = limits[1];
-                CSVSelector.parseFolder(directory, productsLimit, idLimit);
+                File output = CSVSelector.parseFolder(directory, productsLimit, idLimit);
+                checkOutput(output);
             }
         }
     }
@@ -21,6 +22,7 @@ public class Main {
         File directory = new File(sc.next());
         if (!directory.exists()) {
             System.out.println("Directory not found");
+            sc.close();
             return null;
         }
         return directory;
@@ -40,5 +42,13 @@ public class Main {
             sc.close();
         }
         return limits;
+    }
+
+    private static void checkOutput(File file) {
+        if (file != null) {
+            System.out.println(String.format("Result path: %s", file.getAbsolutePath()));
+        } else {
+            System.out.println("Can not create file");
+        }
     }
 }
