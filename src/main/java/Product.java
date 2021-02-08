@@ -19,14 +19,19 @@ public class Product implements Comparable<Product> {
         return price;
     }
 
+    //Default incremental price comparison
     @Override
     public int compareTo(Product p) {
-        return Float.compare(p.price, this.price);
+        return Float.compare(this.price, p.price);
     }
 
     @Override
     public String toString() {
         return String.format("id: %s, name: %s, condition: %s, state: %s, price: %s", productID, name, condition, state, price);
+    }
+
+    public boolean isCheaper(Product p) {
+        return this.compareTo(p) < 0;
     }
 
     public String[] toStringArray() {
