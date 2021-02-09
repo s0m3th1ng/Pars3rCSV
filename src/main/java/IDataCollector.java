@@ -7,7 +7,7 @@ import java.util.PriorityQueue;
 public interface IDataCollector {
 
     File[] getFilesByExtension(File directory, String extension);
-    PriorityQueue<Product> getSortedProducts(File file, int headerLength) throws IOException, CsvValidationException;
+    PriorityQueue<Product> getSortedProducts(File file);
     Product getMostExpensiveProductWithSameID(Product product, PriorityQueue<Product> products);
 
 }

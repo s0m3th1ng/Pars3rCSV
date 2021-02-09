@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
-public class DataCollector implements IDataCollector {
+public class CSVDataCollector implements IDataCollector {
+
+    public int headerLength;
 
     @Override
     public File[] getFilesByExtension(File directory, String extension) {
@@ -20,7 +22,7 @@ public class DataCollector implements IDataCollector {
     }
 
     @Override
-    public PriorityQueue<Product> getSortedProducts(File file, int headerLength) throws IOException, CsvValidationException {
+    public PriorityQueue<Product> getSortedProducts(File file) {
         PriorityQueue<Product> products = new PriorityQueue<>(); //incremental sorting
         try(CSVReader reader = new CSVReader(new FileReader(file))) {
             reader.skip(1);
@@ -37,6 +39,8 @@ public class DataCollector implements IDataCollector {
                 }
                 lineNumber++;
             }
+        } catch (IOException | CsvValidationException e) {
+            log.error(String.format("Error while reading file %s", file.getName()));
         }
         return products; //incremental sorted by price
     }
