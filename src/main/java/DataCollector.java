@@ -1,5 +1,7 @@
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileReader;
@@ -8,29 +10,39 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 
-public abstract class DataCollector {
+@Slf4j
+@AllArgsConstructor
+public class DataCollector implements IDataCollector {
 
-    public static File[] getFilesByExtension(File directory, String extension) {
+    @Override
+    public File[] getFilesByExtension(File directory, String extension) {
         return directory.listFiles((dir, name) -> name.endsWith(extension));
     }
 
-    public static PriorityQueue<Product> getSortedProducts(File file) throws IOException, CsvValidationException {
-        CSVReader reader = new CSVReader(new FileReader(file));
-        reader.skip(1);
+    @Override
+    public PriorityQueue<Product> getSortedProducts(File file, int headerLength) throws IOException, CsvValidationException {
         PriorityQueue<Product> products = new PriorityQueue<>(); //incremental sorting
-        for (String[] data = reader.readNext(); data != null; data = reader.readNext()) {
-            if (data.length != 5) {
-                continue;
+        try(CSVReader reader = new CSVReader(new FileReader(file))) {
+            reader.skip(1);
+            long lineNumber = 1;
+            for (String[] data = reader.readNext(); data != null; data = reader.readNext()) {
+                long productsSize = products.size();
+                if (data.length == headerLength) {
+                    try {
+                        products.add(new Product(Integer.parseInt(data[0]), data[1], data[2], data[3], Float.parseFloat(data[4])));
+                    } catch (NumberFormatException ignored) { }
+                }
+                if (productsSize == products.size()) {
+                    log.error(String.format("Line %s in file %s contains error. Line skipped", lineNumber, file.getName()));
+                }
+                lineNumber++;
             }
-            try {
-                products.add(new Product(Integer.parseInt(data[0]), data[1], data[2], data[3], Float.parseFloat(data[4])));
-            } catch (NumberFormatException ignored) { }
         }
-        reader.close();
         return products; //incremental sorted by price
     }
 
-    public static Product getMostExpensiveProductWithSameID(Product product, PriorityQueue<Product> products) {
+    @Override
+    public Product getMostExpensiveProductWithSameID(Product product, PriorityQueue<Product> products) {
         List<Product> productsWithSameID = products.stream()
                 .filter(p -> p.getProductID() == product.getProductID())
                 .sorted(new ProductComparator())
