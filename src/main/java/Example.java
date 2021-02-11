@@ -8,31 +8,35 @@ import java.util.Scanner;
 public class Example {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        File directory = getDirectory(sc);
-        if (directory != null) {
-            int[] limits = getLimits(sc);
-            if (limits != null) {
-                int productsLimit = limits[0];
-                int idLimit = limits[1];
-                CheapestProductsSelector selector = new CheapestProductsSelector(
-                        "Product ID,Name,Condition,State,Price".split(","),
-                        "output.csv"
-                );
-                File output = selector.getCheapestProducts(directory, productsLimit, idLimit);
-                checkOutput(output);
-            }
+        File input = getInputCSV(sc);
+        if (input == null) {
+            return;
         }
+        int[] limits = getLimits(sc);
+        if (limits == null) {
+            return;
+        }
+        int productsLimit = limits[0];
+        int idLimit = limits[1];
+        char separator = getDivider(sc);
+        CheapestProductsSelector selector = new CheapestProductsSelector(
+                "Product ID,Name,Condition,State,Price".split(","),
+                "output.csv",
+                separator
+        );
+        File output = selector.getCheapestProducts(input, productsLimit, idLimit);
+        checkOutput(output);
     }
 
-    public static File getDirectory(Scanner sc) {
-        log.info("Enter directory name: ");
-        File directory = new File(sc.next());
-        if (!directory.exists()) {
-            log.error("Directory not found");
+    public static File getInputCSV(Scanner sc) {
+        log.info("Enter full path to file: ");
+        File input = new File(sc.next());
+        if (!input.exists() || !input.isFile()) {
+            log.error("File not found");
             sc.close();
             return null;
         }
-        return directory;
+        return input;
     }
 
     public static int[] getLimits(Scanner sc) {
@@ -44,11 +48,15 @@ public class Example {
             limits[1] = sc.nextInt();
         } catch (InputMismatchException e) {
             log.error("Incorrect value, try again");
-            return null;
-        } finally {
             sc.close();
+            return null;
         }
         return limits;
+    }
+
+    public static char getDivider(Scanner sc) {
+        log.info("Enter divider character (only the first entered character is considered): ");
+        return sc.next().charAt(0);
     }
 
     private static void checkOutput(File file) {

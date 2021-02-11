@@ -12,7 +12,6 @@ import java.util.PriorityQueue;
 @AllArgsConstructor
 public class CSVCreator implements IFileCreator {
 
-    @Getter
     private String[] header;
     private String filename;
 

@@ -1,4 +1,7 @@
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,18 +17,19 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CSVDataCollector implements IDataCollector {
 
-    public int headerLength;
-
-    @Override
-    public File[] getFilesByExtension(File directory, String extension) {
-        return directory.listFiles((dir, name) -> name.endsWith(extension));
-    }
+    private int headerLength;
+    private char separator;
 
     @Override
     public PriorityQueue<Product> getSortedProducts(File file) {
         PriorityQueue<Product> products = new PriorityQueue<>(); //incremental sorting
-        try(CSVReader reader = new CSVReader(new FileReader(file))) {
-            reader.skip(1);
+        CSVParser parser = new CSVParserBuilder().withSeparator(separator).build();
+        try(CSVReader reader = new CSVReaderBuilder(
+                new FileReader(file))
+                .withCSVParser(parser)
+                .withSkipLines(1)
+                .build()
+        ) {
             long lineNumber = 1;
             for (String[] data = reader.readNext(); data != null; data = reader.readNext()) {
                 long productsSize = products.size();
@@ -40,7 +44,7 @@ public class CSVDataCollector implements IDataCollector {
                 lineNumber++;
             }
         } catch (IOException | CsvValidationException e) {
-            log.error(String.format("Error while reading file %s", file.getName()));
+            log.error(String.format("Error while reading file \"%s\"", file.getName()));
         }
         return products; //incremental sorted by price
     }

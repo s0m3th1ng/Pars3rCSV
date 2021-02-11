@@ -1,40 +1,26 @@
-import com.opencsv.exceptions.CsvValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.PriorityQueue;
 
 @Slf4j
 public class CheapestProductsSelector {
 
-    private static final String FILE_NOT_AVAILABLE = "File %s is not available";
+    //private static final String FILE_NOT_AVAILABLE = "File %s is not available";
 
     private CSVDataCollector collector;
     private CSVCreator creator;
 
-    public CheapestProductsSelector(String[] header, String outputFilename) {
-        this.collector = new CSVDataCollector(header.length);
+    public CheapestProductsSelector(String[] header, String outputFilename, char separator) {
+        this.collector = new CSVDataCollector(header.length, separator);
         this.creator = new CSVCreator(header, outputFilename);
     }
 
-    public File getCheapestProducts(File directory, int productsLimit, int idLimit) {
-        File[] files = collector.getFilesByExtension(directory, ".csv");
-        PriorityQueue<Product> products = selectCheapestProductsFromFiles(files, productsLimit, idLimit);
-        return creator.createFile(products);
-    }
-
-    private PriorityQueue<Product> selectCheapestProductsFromFiles(File[] files, int productsLimit, int idLimit) {
-        PriorityQueue<Product> cheapest = new PriorityQueue<>(new ProductComparator()); //decremental sorting for correct pulling
-        for (File f : files) {
-            if (!f.canRead()) {
-                log.error(String.format(FILE_NOT_AVAILABLE, f.getName()));
-                continue;
-            }
-            PriorityQueue<Product> dataFromFile = collector.getSortedProducts(f);
-            addProductsFromFileToCheapest(cheapest, dataFromFile, productsLimit, idLimit);
-        }
-        return cheapest;
+    public File getCheapestProducts(File file, int productsLimit, int idLimit) {
+        PriorityQueue<Product> cheapest = new PriorityQueue<>(new ProductComparator()); //decremental sorting for correct pulling;
+        PriorityQueue<Product> dataFromFile = collector.getSortedProducts(file);
+        addProductsFromFileToCheapest(cheapest, dataFromFile, productsLimit, idLimit);
+        return creator.createFile(cheapest);
     }
 
     private void addProductsFromFileToCheapest(
