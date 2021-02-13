@@ -1,7 +1,13 @@
-Product ID,Name,Condition,State,Price
+Product.Product ID,Name,Condition,State,Price
 1,bread,sell,sold,4.1
 2,sugar,buy,to buy,3.32
 2,milk,sell,available,2.91
-1,cheese,buy,bought,5.133
+2,cheese,buy,bought,5.133
 1,meat,buy,to buy,10.23
 2,cake,sell,sold,1.139
+1,bread,sell,sold,4
+3,sugar,buy,to buy,3.3
+2,milk,sell,available,ss
+1,cheese,buy,2.39
+1,meat,buy,to buy,10,3
+2,cake,sell,sold,2.13

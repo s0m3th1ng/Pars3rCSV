@@ -1,3 +1,5 @@
+package Product;
+
 import java.util.Comparator;
 
 public class ProductComparator implements Comparator<Product> {

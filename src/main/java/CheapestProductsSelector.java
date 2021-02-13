@@ -1,23 +1,31 @@
+import DataCollector.IDataCollector;
+import FileCreator.IFileCreator;
+import Product.*;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.PriorityQueue;
 
 @Slf4j
+@AllArgsConstructor
 public class CheapestProductsSelector {
 
-    //private static final String FILE_NOT_AVAILABLE = "File %s is not available";
+    private static final String FILE_DOES_NOT_EXIST = "File %s does not exist";
 
-    private CSVDataCollector collector;
-    private CSVCreator creator;
+    private IDataCollector collector;
+    private IFileCreator creator;
 
-    public CheapestProductsSelector(String[] header, String outputFilename, char separator) {
-        this.collector = new CSVDataCollector(header.length, separator);
-        this.creator = new CSVCreator(header, outputFilename);
-    }
-
-    public File getCheapestProducts(File file, int productsLimit, int idLimit) {
+    public File getCheapestProducts(@NotNull File file, int productsLimit, int idLimit) throws IOException {
+        if (!file.exists() || !file.isFile()) {
+            throw new IOException(String.format(FILE_DOES_NOT_EXIST, file.getName()));
+        }
         PriorityQueue<Product> cheapest = new PriorityQueue<>(new ProductComparator()); //decremental sorting for correct pulling;
+        if (productsLimit < 1 || idLimit < 1) {
+            return creator.createFile(cheapest);
+        }
         PriorityQueue<Product> dataFromFile = collector.getSortedProducts(file);
         addProductsFromFileToCheapest(cheapest, dataFromFile, productsLimit, idLimit);
         return creator.createFile(cheapest);
@@ -31,21 +39,6 @@ public class CheapestProductsSelector {
     ) {
         while (dataFromFile.size() > 0) {
             Product productFromCSV = dataFromFile.poll();
-            if (idLimit(productFromCSV, cheapest, idLimit)) {
-                Product productFromQueue = collector.getMostExpensiveProductWithSameID(productFromCSV, cheapest);
-                if (productFromCSV.getPrice() < productFromQueue.getPrice()) {
-                    cheapest.remove(productFromQueue);
-                }
-            } else {
-                if (cheapest.size() == productsLimit) {
-                    if (productFromCSV.isCheaper(cheapest.peek())) {
-                        cheapest.poll();
-                    } else {
-                        //dataFromFile is sorted. All following are more expensive
-                        break;
-                    }
-                }
-            }
             if (!idLimit(productFromCSV, cheapest, idLimit) && (cheapest.size() < productsLimit)) {
                 cheapest.add(productFromCSV);
             }

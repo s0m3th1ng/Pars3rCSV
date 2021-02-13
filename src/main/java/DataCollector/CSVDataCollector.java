@@ -1,3 +1,6 @@
+package DataCollector;
+
+import Product.*;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -9,19 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.PriorityQueue;
-import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
 public class CSVDataCollector implements IDataCollector {
 
+    private static final String errorMessage = "Error while reading file \"%s\"";
+
     private int headerLength;
     private char separator;
 
     @Override
-    public PriorityQueue<Product> getSortedProducts(File file) {
+    public PriorityQueue<Product> getSortedProducts(File file) throws IOException {
         PriorityQueue<Product> products = new PriorityQueue<>(); //incremental sorting
         CSVParser parser = new CSVParserBuilder().withSeparator(separator).build();
         try(CSVReader reader = new CSVReaderBuilder(
@@ -44,18 +47,10 @@ public class CSVDataCollector implements IDataCollector {
                 lineNumber++;
             }
         } catch (IOException | CsvValidationException e) {
-            log.error(String.format("Error while reading file \"%s\"", file.getName()));
+            log.error(String.format(errorMessage, file.getName()));
+            throw new IOException(String.format(errorMessage, file.getName()));
         }
         return products; //incremental sorted by price
-    }
-
-    @Override
-    public Product getMostExpensiveProductWithSameID(Product product, PriorityQueue<Product> products) {
-        List<Product> productsWithSameID = products.stream()
-                .filter(p -> p.getProductID() == product.getProductID())
-                .sorted(new ProductComparator())
-                .collect(Collectors.toList());
-        return productsWithSameID.get(0);
     }
 
 }
