@@ -25,7 +25,8 @@ public class SelectorTests {
     private SelectorProperties properties;
 
     private final String pathToCorrectFile = "csv/222.csv";
-    private final String pathToIncorrectFile = "csv/empty.csv";
+    private final String pathToIncorrectFile1 = "csv/empty.csv";
+    private final String pathToIncorrectFile2 = "csv/111.txt";
     private final String incorrectPath = "csv/incorrect.csv";
     private final String packagePath = "csv";
 
@@ -37,7 +38,7 @@ public class SelectorTests {
                 "output.csv"
         );
         selector = new CheapestProductsSelector(
-                new CSVDataCollector(properties.getHeader().length, properties.getSeparator()),
+                new CSVDataCollector(properties.getHeader(), properties.getSeparator()),
                 new CSVCreator(properties.getHeader(), properties.getOutputFilename())
         );
     }
@@ -66,7 +67,7 @@ public class SelectorTests {
         }
     }
 
-    public void checkFileSizeAndIdsCount(File output, int maxLength, int maxId) throws IOException, CsvValidationException {
+    private void checkFileSizeAndIdsCount(File output, int maxLength, int maxId) throws IOException, CsvValidationException {
         CSVReader reader = new CSVReaderBuilder(
                 new FileReader(output))
                 .withSkipLines(1)
@@ -79,7 +80,7 @@ public class SelectorTests {
             if (idCount.isPresent()) {
                 idCount.get()[1]++;
             } else {
-                idsCount.add(new int[] {id, 1});
+                idsCount.add(new int[]{id, 1});
             }
         }
         assertTrue(maxLength >= 0);
@@ -92,6 +93,12 @@ public class SelectorTests {
     public void stableIncorrectUsing() {
         String header = Arrays.stream(properties.getHeader())
                 .collect(Collectors.joining(",", "", "\n"));
+        checkCorrectFiles(header);
+        checkIncorrectFiles();
+        checkIncorrectPaths();
+    }
+
+    private void checkCorrectFiles(String header) {
         try {
             File output = selector.getCheapestProducts(new File(pathToCorrectFile), 0, 0);
             assertNotNull(output);
@@ -100,24 +107,25 @@ public class SelectorTests {
             output = selector.getCheapestProducts(new File(pathToCorrectFile), 1, 0);
             assertNotNull(output);
             assertEquals(header.length(), output.length());
-
-            output = selector.getCheapestProducts(new File(pathToIncorrectFile), 3, 3);
-            assertNotNull(output);
-            assertEquals(header.length(), output.length());
-
-            assertThrows(NullPointerException.class, () -> selector.getCheapestProducts(null, 3, 3));
-
-            assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(incorrectPath), 3, 3));
-
-            assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(packagePath), 3, 3));
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
+    private void checkIncorrectFiles() {
+        assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(pathToIncorrectFile1), 3, 3));
+        assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(pathToIncorrectFile2), 3, 3));
+    }
+
+    private void checkIncorrectPaths() {
+        assertThrows(NullPointerException.class, () -> selector.getCheapestProducts(null, 3, 3));
+        assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(incorrectPath), 3, 3));
+        assertThrows(IOException.class, () -> selector.getCheapestProducts(new File(packagePath), 3, 3));
+    }
+
     @Test
     public void unstableOrProtectedFromWriting() {
-        CSVCreator creator = new CSVCreator(new String[] {}, "C:/windows/1.csv");
+        CSVCreator creator = new CSVCreator(new String[]{}, "C:/windows/1.csv");
         assertThrows(IOException.class, () -> creator.createFile(new PriorityQueue<>()));
     }
 

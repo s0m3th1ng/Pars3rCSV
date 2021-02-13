@@ -14,7 +14,7 @@ import java.util.PriorityQueue;
 @AllArgsConstructor
 public class CSVCreator implements IFileCreator {
 
-    private static final String errorMessage = "Error while creating file \"%s\"";
+    private static final String ERROR_MESSAGE = "Error while creating file \"%s\"";
 
     private String[] header;
     private String filename;
@@ -28,9 +28,9 @@ public class CSVCreator implements IFileCreator {
                     .sorted()
                     .forEach(p -> writer.writeNext(p.toStringArray(), false));
         } catch (IOException e) {
-            log.error(String.format(errorMessage, filename));
+            log.error(String.format(ERROR_MESSAGE, filename));
             output.delete();
-            throw new IOException(String.format(errorMessage, filename));
+            throw new IOException(String.format(ERROR_MESSAGE, filename));
         }
         return output;
     }

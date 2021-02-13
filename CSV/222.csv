@@ -1,4 +1,4 @@
-Product.Product ID,Name,Condition,State,Price
+Product ID,Name,Condition,State,Price
 1,bread,sell,sold,4.1
 2,sugar,buy,to buy,3.32
 2,milk,sell,available,2.91
